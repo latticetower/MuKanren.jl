@@ -108,6 +108,7 @@ end
 
 disj(g1, g2) = s_c :: Pair -> mplus(g1(s_c), g2(s_c))
 conj(g1, g2) = s_c :: Pair -> bind(g1(s_c), g2)
+
 function string(p :: Pair)
   "(" + string(p.car) + " . " +  string(p.cdr) + ")"
 end
@@ -136,14 +137,14 @@ macro disj_(g0, g...)
 end
 
 macro conde(g...)
-  return :(@disj_(map( x-> @conj_(x), $g)))
+  return :(@disj_(map(x-> @conj_(x), $g)))
 end
 
 macro fresh(vars, g0, g...)
   if (isempty(vars))
-    return :(@conj_(g0, g...))
+    return :(@conj_($g0, $g...))
   else
-    #return :(@call_fresh_macro(vars, g0, g...))
+    return :(call_fresh(vars[1] -> @fresh($vars[2:end], $g0, $g...)))
     #todo: add this condition for macro expansion
   end
 end
@@ -223,11 +224,11 @@ end
 #############3 run macros
 #todo: fix im lazy now to do it
 macro run(n, vars, g0, g...)
-  :(mk_reify(take(n, call_empty_state(fresh(vars, g0, g...)))))
+  :(mk_reify(take(n, call_empty_state(@fresh($vars, $g0, $g...)))))
 end
 
 macro run_star(var, g0, g...)
-  :(mk_reify(take_all(call_empty_state(fresh(vars, g0, g...)))))
+  :(mk_reify(take_all(call_empty_state(@fresh($vars, $g0, $g...)))))
 end
 
 function occurs(x, v, s)
@@ -242,23 +243,23 @@ end
 ###########tests
 ##############
 println("all fine")
-println(macroexpand(:(@Zzz x->println(x))))
-c= (@Zzz x->println(x))
-c(1)()
+#println(macroexpand(:(@Zzz x->println(x))))
+#c= (@Zzz x->println(x))
+#c(1)()
 
-println(macroexpand(:(@conj_ x->println(x) x->println(x))))
-c= (@conj_ x->println(x) x->println(x))
-c(Pair(nil(),0))()
+println(macroexpand(:(@fresh () (x->equals(x, "111")) (y->equals(y, "111")) )))
 
-println(macroexpand(:(@conde (x->println(x)) (x2->println("a")))))
+#println(macroexpand(:(@conj_ x->println(x) x->println(x))))
+#c = (@conj_ x->println(x) x->println(x))
+#c(Pair(nil(),0))()
+
+#println(macroexpand(:(@conde (x->println(x)) (x2->println("a")))))
 
 
-ext_s("a", 1, nil())
-println(assp(x->(x=="a"), list(Pair("b", 2), Pair("a", 1))))
-empty_state=Pair(nil(), 0)
-call_empty_state(g) = g(empty_state)
-
-println((call_fresh(x->equals(x,5)))(empty_state))
-
-fives = x -> disj(equals(x, 5), s_c ->() -> ((fives(x))(s_c)))
-println((call_fresh(fives))(empty_state))
+#ext_s("a", 1, nil())
+#println(assp(x->(x=="a"), list(Pair("b", 2), Pair("a", 1))))
+#empty_state=Pair(nil(), 0)
+#call_empty_state(g) = g(empty_state)
+#println((call_fresh(x->equals(x,5)))(empty_state))
+#fives = x -> disj(equals(x, 5), s_c ->() -> ((fives(x))(s_c)))
+#println((call_fresh(fives))(empty_state))
