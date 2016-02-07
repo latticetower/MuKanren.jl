@@ -2,7 +2,7 @@ using DataStructures
 
 module MicroKanren
 import DataStructures: cons, Cons, nil, head, tail, Nil
-export is_cons, assp, ext_s, call_fresh, equals
+export is_cons, assp, ext_s, call_fresh, equals, list
 #helpers
 car{T}(x :: Cons{T}) = head(x)
 cdr{T}(x :: Cons{T}) = tail(x)
@@ -23,7 +23,7 @@ end
 #is_procedure(elt) = isa(elt, Proc)
 
 assp(func :: Function, alist :: Nil) = false
-function assp{T1, T2}(func :: Function, alist :: Cons{Pair{T1, T2}})
+function assp(func :: Function, alist :: Cons)
   first_pair = car(alist)
   first_value = car(first_pair)
   if func(first_value)

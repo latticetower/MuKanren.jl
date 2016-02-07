@@ -1,6 +1,6 @@
 
 import Base.string
-using miniKanren, Base.Test
+using Base.Test
 importall miniKanren
 
 

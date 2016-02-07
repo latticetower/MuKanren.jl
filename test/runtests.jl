@@ -1,6 +1,8 @@
 import Base.string
-using Base.Test, miniKanren
-importall miniKanren
+using Base.Test, miniKanren.MicroKanren
+import DataStructures: cons, Cons, nil, head, tail, Nil
+
+import miniKanren.MicroKanren
 
 print(Pair(1,2))
 
