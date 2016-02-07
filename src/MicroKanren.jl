@@ -2,7 +2,7 @@ using DataStructures
 
 module MicroKanren
 import DataStructures: cons, Cons, nil, head, tail, Nil
-#export is_cons, assp, ext_s, call_fresh, equals
+export is_cons, assp, ext_s, call_fresh, equals
 #helpers
 car{T}(x :: Cons{T}) = head(x)
 cdr{T}(x :: Cons{T}) = tail(x)
