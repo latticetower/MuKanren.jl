@@ -1,16 +1,20 @@
 using DataStructures
 
 module MicroKanren
-import DataStructures: cons, Cons, nil, head, tail
-
+import DataStructures: cons, Cons, nil, head, tail, Nil
+#export is_cons, assp, ext_s, call_fresh, equals
 #helpers
 car{T}(x :: Cons{T}) = head(x)
 cdr{T}(x :: Cons{T}) = tail(x)
 
-is_cons(d) = isa(d, MicroKanren::Cons)
 
-is_pair = is_cons
-function map(func, list)
+car(x :: Pair) = first(x)
+cdr(x :: Pair) = last(x)
+
+is_cons(d) = isa(d, Cons)
+is_pair(x) = isa(x, Pair)
+
+function map(func, list :: Cons)
   if list
     cons(func.call(car(list)), map(func, cdr(list)))
   end
@@ -20,33 +24,27 @@ function length(list)
   list.is_nil ? 0 : 1 + length(cdr(list))
 end
 
-function list(values)
-  if not values.empty
-    cons(values[1], list(values[2:end]))
-  end
+list() = nil()
+function list(values...)
+  cons(values[1], list(values[2:end]...))
 end
 
-function is_procedure(elt)
-  isa(elt, Proc)
-end
+#is_procedure(elt) = isa(elt, Proc)
 
-function assp(func, alist)
-  if alist
-    first_pair = car(alist)
-    first_value = car(first_pair)
-    if func.call(first_value)
-      first_pair
-    else
-      assp(func, cdr(alist))
-    end
+assp(func :: Function, alist :: Nil) = false
+function assp{T1, T2}(func :: Function, alist :: Cons{Pair{T1, T2}})
+  first_pair = car(alist)
+  first_value = car(first_pair)
+  if func(first_value)
+    first_pair
   else
-    false
+    assp(func, cdr(alist))
   end
 end
 
 #code
 typealias Var{T} Cons{T}
-var(c) = Var(c)
+var(c) = list(c)
 is_var(x) = isa(x, Var)
 
 vars_equal(x1, x2) = x1[0] == x2[0]
@@ -59,7 +57,7 @@ function walk(u, s)
     u
   end
 end
-ext_s(x, v, s) = cons(cons(x, v), s)
+ext_s(x, v, s) = cons(Pair(x, v), s)
 
 function eq(u, v)
   function (s_c)
@@ -90,11 +88,11 @@ end
 
 # Call function f with a fresh variable.
 function call_fresh(f)
-  function f(s_c)
+  function g(s_c)
     c = cdr(s_c)
-    f.call(var(c)).call(cons(car(s_c), c + 1))
+    f(var(c))(Pair(car(s_c), c + 1))
   end
-  f
+  g
 end
 
 function disj(g1, g2)
@@ -106,6 +104,15 @@ end
 
 function conj(g1, g2)
   s_c -> bind(g1.call(s_c), g2)
+end
+
+
+function equals(u, v)
+  function g(s_c :: Pair)
+    s = unify(u, v, car(s_c))
+    s!= nil() ? unit(Pair(s, cdr(s_c))) : mzero
+  end
+  g
 end
 
 function mplus(d1, d2)
