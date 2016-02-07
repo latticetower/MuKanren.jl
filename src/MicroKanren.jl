@@ -59,13 +59,6 @@ function walk(u, s)
 end
 ext_s(x, v, s) = cons(Pair(x, v), s)
 
-function eq(u, v)
-  function (s_c)
-    s = unify(u, v, car(s_c))
-    s ? unit(cons(s, cdr(s_c))) : mzero
-  end
-end
-
 unit = s_c-> cons(s_c, mzero)
 mzero = nil()
 
@@ -95,16 +88,8 @@ function call_fresh(f)
   g
 end
 
-function disj(g1, g2)
-  function f(s_c)
-    mplus(g1.call(s_c), g2.call(s_c))
-  end
-  f
-end
-
-function conj(g1, g2)
-  s_c -> bind(g1.call(s_c), g2)
-end
+disj(g1, g2) = s_c -> mplus(g1.call(s_c), g2.call(s_c))
+conj(g1, g2) = s_c -> bind(g1.call(s_c), g2)
 
 
 function equals(u, v)
@@ -115,29 +100,30 @@ function equals(u, v)
   g
 end
 
+mplus(nil, d2) = d2
 function mplus(d1, d2)
-  if d1.is_nil
-    d2
-  elseif is_procedure(d1)
-    function f()
-      mplus(d2, d1.call)
-    end
-    f
+  if is_procedure(d1)
+    () -> mplus(d1(), d2)
   else
     cons(car(d1), mplus(cdr(d1), d2))
   end
 end
 
+bind(nil, g) = mzero
 function bind(d, g)
-  if d.is_nil
-    mzero
-  elseif is_procedure(d)
-    ()->bind(d.call, g)
-
+  if is_procedure(d)
+    () -> bind(d(), g)
   else
-    mplus(g.call(car(d)), bind(cdr(d), g))
+    mplus(g(car(d)), bind(cdr(d), g))
   end
 end
+
+import Base.string
+string(p :: Pair) = Base.string("(", p[1], " . ", p[2],")")
+import Base.print
+print(io :: IO, p :: Pair) = print(io, string(p))
+import Base.show
+show(io :: IO, p :: Pair) = print(io, p)
 
 #call_fresh and so on
 
