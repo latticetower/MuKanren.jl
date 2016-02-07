@@ -1,6 +1,5 @@
 import Base.string
-using MicroKanren, Base.Test
-import MicroKanren
+using Base.Test, MicroKanren
 
 
 print(Pair(1,2))
