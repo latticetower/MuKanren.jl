@@ -1,7 +1,7 @@
 
 import Base.string
-using MicroKanren, Base.Test
-importall MicroKanren
+using miniKanren, Base.Test
+importall miniKanren
 
 
 println("all fine")
