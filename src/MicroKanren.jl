@@ -1,4 +1,3 @@
-using DataStructures
 
 module MicroKanren
 export is_cons, assp, ext_s, call_fresh, map, length, equals, list, nil, Nil, bind, mplus, mzero, Var, var, conj, disj, car, cdr, take, take_all, vars_equal, cons
