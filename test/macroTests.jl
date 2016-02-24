@@ -1,21 +1,39 @@
 
 import Base.string
-using Base.Test
-importall miniKanren
+using Base.Test, miniKanren.MicroKanren, FactCheck
+importall miniKanren.MicroKanren
 
 
-println("all fine")
-#println(macroexpand(:(@Zzz x->println(x))))
-#c= (@Zzz x->println(x))
-#c(1)()
+facts("Macro tests") do
+  context("Zzz") do
+    #println(macroexpand(:(@Zzz(x->println(x)))))
+    c = @Zzz(x -> x)
+    @fact c("Test Zzz")() --> "Test Zzz"
+  end
 
-println(macroexpand(:(@fresh () (x->equals(x, "111")) (y->equals(y, "111")) )))
+  context("fresh") do
+    #println(macroexpand(:(@fresh () (x->equals(x, "111")) (y->equals(y, "111")) )))
+    #x = @fresh () (x->equals(x, "111")) (y->equals(y, "111"))
+  end
+  context("conj+") do
+    #println(@conj_ (x-> equals(x, "111")) ( y -> equals(y, "222")) )
+    #println(macroexpand(:(@conj_ x->println(x) x->println(x))))
+    #c = (@conj_(println, println))
+    #c(Pair(nil(),0))()
+  end
+  context("disj+") do
+  end
+  context("conde") do
+    #println(macroexpand(:(@conde (x->println(x)) (x2->println("a")))))
+  end
+end
 
-#println(macroexpand(:(@conj_ x->println(x) x->println(x))))
-#c = (@conj_ x->println(x) x->println(x))
-#c(Pair(nil(),0))()
 
-#println(macroexpand(:(@conde (x->println(x)) (x2->println("a")))))
+#print(2)
+
+
+
+
 
 
 #ext_s("a", 1, nil())
