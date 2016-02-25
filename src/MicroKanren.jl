@@ -142,26 +142,25 @@ show(io :: IO, v :: Nil) = print(io, v)
 ################################
 ############### macro definitions
 ################################
-export @Zzz, @conj_, @disj_
+export @Zzz, @fresh, @conj_, @disj_
 
 macro Zzz(g)
-  return :(s_c -> () -> $g(s_c))
+  return :(s_c -> () -> $(esc(g))(s_c))
 end
 
 macro conj_(g0, g...)
-  #show(g)
   if (isempty(g))
-    return :(@Zzz($g0))
+    return :(eval(@Zzz($(esc(g0)))))
   else
-    return :(conj(@Zzz($g0), @conj_($g...)))
+    return :(conj(eval(@Zzz($(esc(g0)))), eval(@conj_($(esc(g...))))))
   end
 end
 
 macro disj_(g0, g...)
   if (isempty(g))
-    return :(@Zzz($g0))
+    return :(eval(@Zzz($(esc(g0)))))
   else
-    return :(disj(@Zzz($g0), @disj_($g...)))
+    return :(disj(eval(@Zzz($(esc(g0)))), eval(@disj_($(esc(g...))))))
   end
 end
 
@@ -172,13 +171,16 @@ end
 macro fresh(vars, g0, g...)
   if (isempty(vars))
     print("empty vars in fresh")
+    return :(22)
     return :(@conj_($g0, $g...))
   else
     #print("not empty vars in fresh")
-    return :(call_fresh(vars[1] -> @fresh($vars[2:end], $g0, $g...)))
+    local first = vars[1]
+    local last = vars[2:end]
+    return :(call_fresh(Expr($first -> @fresh($last, $g0, $g...))))
     #todo: add this condition for macro expansion
   end
-  return ""
+  return :(11)
 end
 
 ############# 5.2

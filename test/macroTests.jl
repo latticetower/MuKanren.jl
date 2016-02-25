@@ -5,6 +5,7 @@ importall miniKanren.MicroKanren
 
 
 facts("Macro tests") do
+  empty_state = Pair(nil(), 0)
   context("Zzz") do
     #println(macroexpand(:(@Zzz(x->println(x)))))
     c = @Zzz(x -> x)
@@ -17,11 +18,18 @@ facts("Macro tests") do
   end
   context("conj+") do
     #println(@conj_ (x-> equals(x, "111")) ( y -> equals(y, "222")) )
-    #println(macroexpand(:(@conj_ x->println(x) x->println(x))))
+    #println(macroexpand(:(call_fresh(b -> call_fresh(a -> @conj_(equals(a, 3), equals(b, 4)))))))
+    exp1 = call_fresh(b -> call_fresh(a -> conj(equals(a, 3), equals(b, 4))))
+    exp2 = call_fresh(b -> call_fresh(a -> @conj_(equals(a, 3), equals(b, 4))))
+    @fact take_all(exp1(empty_state)) --> take_all(exp2(empty_state))
+    #list(Pair(list(Pair(Var(0), 4), Pair(Var(1), 3)), 2))
     #c = (@conj_(println, println))
     #c(Pair(nil(),0))()
   end
   context("disj+") do
+    exp1 = call_fresh(a -> disj(equals(a, 3), equals(a, 4)))
+    exp2 = call_fresh(a -> @disj_(equals(a, 3), equals(a, 4)))
+    @fact take_all(exp1(empty_state)) --> take_all(exp2(empty_state))
   end
   context("conde") do
     #println(macroexpand(:(@conde (x->println(x)) (x2->println("a")))))
