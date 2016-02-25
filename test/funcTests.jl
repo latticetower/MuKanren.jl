@@ -6,6 +6,17 @@ facts("objects") do
   context("list functions") do
     @fact list(1, 2, 3) --> is_cons
   end
+  context("cons construction") do
+    p1 = list("a")
+    @fact car(p1) --> "a"
+    @fact cdr(p1) --> nil()
+    p2 = list("a", "b")
+    @fact car(p2) --> "a"
+    @fact cdr(p2) --> list("b")
+    p3 = list("a", "b")
+    @fact car(p2) --> "a"
+    @fact cdr(p2) --> list("b")
+  end
 end
 
 facts("Goal construction") do
@@ -81,17 +92,7 @@ facts("Goal construction") do
     @fact exp3(empty_state) --> list(Pair(list(Pair(Var(0), 3)), 1), Pair(list(Pair(Var(0), 4)), 1))#TODO: fix
   end
 
-  context("cons construction") do
-    p1 = list("a")
-    @fact car(p1) --> "a"
-    @fact cdr(p1) --> nil()
-    p2 = list("a", "b")
-    @fact car(p2) --> "a"
-    @fact cdr(p2) --> list("b")
-    p3 = list("a", "b")
-    @fact car(p2) --> "a"
-    @fact cdr(p2) --> list("b")
-  end
+
 end
 
 facts("Function calls") do

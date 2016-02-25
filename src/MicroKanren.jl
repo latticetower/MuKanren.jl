@@ -50,17 +50,15 @@ end
 #code
 
 #Var(c) = [c]
-is_Var(x) = isa(x, Var)
+is_var(x) = isa(x, Var)
 
 vars_equal(x1, x2) = x1.index == x2.index
 
 
 function walk(u, s)
-  #println(string("walk: ", u, " || ", s))
-  if is_Var(u)
+  if is_var(u)
     pr = assp(v -> vars_equal(u, v), s)
-    #println(string("assp call result: ", pr))
-    pr!=nil() && return walk(cdr(pr), s)
+    pr != nil() && return walk(cdr(pr), s)
   end
   u
 end
@@ -77,22 +75,17 @@ unit = s_c :: Pair -> cons(s_c, mzero) #todo check if here should really be list
 
 
 function unify(u, v, s)
-  #println(string("++++++in unify call ", u, " ",  v, " ", s))
   u = walk(u, s)
   v = walk(v, s)
-  #println(string("unify call-after walk ", u, " ",  v, " ", is_Var(u), is_Var(v), is_pair(u), is_pair(v)))
-  is_Var(u) && is_Var(v) && vars_equal(u, v) && return s
-  is_Var(u) && return ext_s(u, v, s)
-  is_Var(v) && return ext_s(v, u, s)
+  is_var(u) && is_var(v) && vars_equal(u, v) && return s
+  is_var(u) && return ext_s(u, v, s)
+  is_var(v) && return ext_s(v, u, s)
   if is_pair(u) && is_pair(v)
-    #println("before recursive unify call")
     s = unify(car(u), car(v), s)
-  #  println(string("unify - after inner call ", s, ", ",  u, ", ", v, " ", s != nil()))
     s != nil() && begin
-      #println("before recursive unify call")
       return unify(cdr(u), cdr(v), s)
     end
-  else # Object identity (equal?) seems closest to eqv? in Scheme.
+  else
     u == v && return s
   end
   nil()
@@ -102,7 +95,6 @@ end
 function call_fresh(f)
   s_c -> begin
     c = cdr(s_c)
-    #println(string("call_fresh ", s_c))
     f(Var(c))(Pair(car(s_c), c + 1))
   end
 end
@@ -113,9 +105,7 @@ conj(g1, g2) = s_c :: Pair -> bind(g1(s_c), g2)
 
 function equals(u, v)
   s_c :: Pair -> begin
-  #println("before unify call in equals")
     s = unify(u, v, car(s_c))
-  #  println(string("equals ", s, unit(Pair(s, cdr(s_c)))))
     s != mzero ? unit(Pair(s, cdr(s_c))) : mzero
   end
 end
@@ -125,12 +115,10 @@ mplus(goals1 :: Function, goals2) = () -> mplus(goals2, goals1())
 mplus(goals1 :: Pair, goals2) = cons(car(goals1), mplus(goals2, cdr(goals1)))
 
 
-
 bind(stream :: Nil, goal :: Any) = mzero
 bind(stream :: Function, goal) = () -> bind(stream(), goal)
-#(else (mplus (g (car $)) (bind (cdr $) g)))))
 bind(stream :: Pair, goal :: Any) = mplus(goal(car(stream)), bind(cdr(stream), goal))
-#bind(stream :: Pair, goal) = goal(stream)
+
 
 
 
@@ -154,14 +142,14 @@ show(io :: IO, v :: Nil) = print(io, v)
 ################################
 ############### macro definitions
 ################################
-export @Zzz, @fresh, @conj_, @disj_
+export @Zzz, @conj_, @disj_
 
 macro Zzz(g)
   return :(s_c -> () -> $g(s_c))
 end
 
 macro conj_(g0, g...)
-show(g)
+  #show(g)
   if (isempty(g))
     return :(@Zzz($g0))
   else
@@ -219,8 +207,7 @@ end
 ###############
 
 reify_name(n :: Int) = symbol("_.", n)
-length(n :: Nil) = 0
-length(p:: Pair) = cdr(p) == nil() && car(p) == nil() ? 0 : (car(p)!= nil() ? 1: 1 + length(cdr(p)))
+
 
 function map(f :: Function, p :: Pair)
   p == nil() && return nil()
@@ -228,9 +215,11 @@ function map(f :: Function, p :: Pair)
 end
 
 function reify_s(v, s)
+  length(n :: Nil) = 0
+  length(p:: Pair) = cdr(p) == nil() && car(p) == nil() ? 0 : (car(p)!= nil() ? 1: 1 + length(cdr(p)))
   v = walk(v, s)
   #println(s)
-  is_Var(v) && return cons(Pair(v, reify_name(length(s))), s)
+  is_var(v) && return cons(Pair(v, reify_name(length(s))), s)
   is_pair(v) && return reify_s(cdr(v), reify_s(car(v), s))
   s
 end
@@ -239,7 +228,7 @@ end
 function walk_star(v, s)
   #println(string("walk star", v, s))
   v = walk(v, s)
-  is_Var(v) && return v
+  is_var(v) && return v
   is_pair(v) && return cons(walk_star(car(v), s), walk_star(cdr(v), s))
   v
 end
@@ -269,7 +258,7 @@ end
 
 function occurs(x, v, s)
   v = walk(v, s)
-  is_Var(v) && return vars_equal(v, x)
+  is_var(v) && return vars_equal(v, x)
   is_pair(v) && (occurs(x, car(v), s) || occurs(x, cdr(v), s))
 end
 #next is module end
