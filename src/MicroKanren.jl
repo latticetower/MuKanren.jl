@@ -95,6 +95,9 @@ end
 function call_fresh(f)
   s_c -> begin
     c = cdr(s_c)
+    if isa(f, Expr)
+      f = eval(f)
+    end
     f(Var(c))(Pair(car(s_c), c + 1))
   end
 end
@@ -142,7 +145,7 @@ show(io :: IO, v :: Nil) = print(io, v)
 ################################
 ############### macro definitions
 ################################
-export @Zzz, @fresh, @conj_, @disj_
+export @Zzz, @fresh, @conj_, @disj_, @conde
 
 macro Zzz(g)
   return :(s_c -> () -> $(esc(g))(s_c))
@@ -164,23 +167,58 @@ macro disj_(g0, g...)
   end
 end
 
+#(dene- syntax conde
+#(syntax- rules ()
+#(( _ (g0 g . . . ) . . . ) (disj+ (conj+ g0 g . . . ) . . . ))))
 macro conde(g...)
-  return :(@disj_(map(x-> @conj_(x), $g...)))
+  return :(@disj_(map(x -> @conj_(x), $g...)))
 end
 
-macro fresh(vars, g0, g...)
-  if (isempty(vars))
-    print("empty vars in fresh")
-    return :(22)
-    return :(@conj_($g0, $g...))
+#macro fresh(vars, g0, g...)
+#  if (isempty(vars))
+#    print("empty vars in fresh")
+#    return :(22)
+#    return :(@conj_($g0, $g...))
+#  else
+#    #print("not empty vars in fresh")
+#    local first = vars[1]
+#    local last = vars[2:end]
+#    return :(call_fresh(Expr($first -> @fresh($last, $g0, $g...))))
+#    #todo: add this condition for macro expansion
+#  end
+#  return :(11)
+#end
+
+macro fresh_helper(g0, vars...)
+  if isempty(vars)
+    g0
   else
-    #print("not empty vars in fresh")
-    local first = vars[1]
-    local last = vars[2:end]
-    return :(call_fresh(Expr($first -> @fresh($last, $g0, $g...))))
-    #todo: add this condition for macro expansion
+    #println(vars[1], vars[2:end], vars)
+    if length(vars) > 1
+      quote
+        local v = @fresh_helper($(esc(g0)), $(vars[2:end])...)
+        println(v)
+        call_fresh(Expr(:->, $(esc(vars[1])), eval(v)))
+        #:(call_fresh($(esc(Expr(:->, $(esc(vars[1])), eval(@fresh_helper($(esc(g0)), $(vars[2:end])...)))))))
+      end
+    else
+      quote
+        local v = $(esc(g0))
+        println(v)
+        call_fresh(Expr(:->, $(esc(vars[1])), v))
+      end
+    end
   end
-  return :(11)
+end
+export @fresh_helper
+
+macro fresh(vars, g0, g...)
+  if isempty(g)
+
+    :( @fresh_helper($(esc(g0)), ($(esc(vars)))... ))
+  else
+    :(@fresh($(esc(vars)), eval(@conj_($(esc(g0)), $(esc(g...))) ) ))
+  end
 end
 
 ############# 5.2
