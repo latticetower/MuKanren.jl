@@ -180,22 +180,6 @@ macro disj_(g0, g...)
 end
 
 
-#(dene- syntax conde
-#(syntax- rules ()
-#(( _ (g0 g . . . ) . . . ) (disj+ (conj+ g0 g . . . ) . . . ))))
-
-#local c = begin
-#  if isa(vars, Symbol)
-#    [:($(esc(eval(QuoteNode(vars)))))]
-#  elseif isa(vars, Expr)
-#    [:($(esc(eval(isa(v, Symbol) ? QuoteNode(v) : v)))) for v in vars.args]
-#  else
-#    []
-#  end
-#end
-##println(c)
-#:(@fresh_helper($(esc(g0)), $(c...) ))
-
 macro conde(g...)
   local cc = [ begin
       if isa(gg, Expr)
@@ -216,21 +200,6 @@ macro conde(g...)
   :( @disj_($(values...)) )
 
 end
-
-#macro fresh(vars, g0, g...)
-#  if (isempty(vars))
-#    print("empty vars in fresh")
-#    return :(22)
-#    return :(@conj_($g0, $g...))
-#  else
-#    #print("not empty vars in fresh")
-#    local first = vars[1]
-#    local last = vars[2:end]
-#    return :(call_fresh(Expr($first -> @fresh($last, $g0, $g...))))
-#    #todo: add this condition for macro expansion
-#  end
-#  return :(11)
-#end
 
 
 macro fresh_helper(g0, vars...)
