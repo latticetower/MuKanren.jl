@@ -80,7 +80,37 @@ facts("Macro tests") do
     println(exp2(empty_state))
     @fact take(3, exp1(empty_state)) --> take(3, exp2(empty_state))
   end
+
   context("conde") do
+    println(macroexpand(:(@conde(equals(3, 3)))))
+    exp1 = @conde(equals(3, 3))
+    exp2 = equals(3, 3)
+    @fact take_all(exp1(empty_state)) --> take_all(exp2(empty_state))
+
+    exp1 = @conde(equals(3, 3), equals(4, 4))
+    exp2 = disj(equals(3, 3), equals(4, 4))
+    @fact take_all(exp1(empty_state)) --> take_all(exp2(empty_state))
+
+    exp1 = @conde((equals(3, 3), equals(4, 4)))
+    exp2 = conj(equals(3, 3), equals(4, 4))
+    @fact take_all(exp1(empty_state)) --> take_all(exp2(empty_state))
     #println(macroexpand(:(@conde (x->println(x)) (x2->println("a")))))
+
+    exp1 = call_fresh(a -> @conde(equals(a, 3)))
+    #println(macroexpand(:(call_fresh(a -> @conde(equals(a, 3))))))
+    exp2 = call_fresh(a -> @disj_(equals(a, 3)))
+    @fact take_all(exp1(empty_state)) --> take_all(exp2(empty_state))
+
+    exp1 = call_fresh(a -> @conde((equals(a, 5),  fives(a)), (equals(a, 4)) ))
+    #println(macroexpand(:(call_fresh(a -> @conde((equals(a, 5),  fives(a)), (equals(a, 4)) )))))
+    exp2 = call_fresh(a -> @disj_(@conj_(equals(a, 5),  fives(a)), equals(a, 4) ))
+    #println(macroexpand(:(call_fresh(a -> @disj_(@conj_(equals(a, 5),  fives(a)), equals(a, 4) )))))
+    @fact take(2, exp1(empty_state)) --> take(2, exp2(empty_state))
+
+    exp1 = call_fresh(a -> call_fresh(b -> @conde((equals(a, 3),  fives(b)), (equals(a, 4)) )))
+    #println(macroexpand(:(call_fresh(a -> @conde((equals(a, 5),  fives(a)), (equals(a, 4)) )))))
+    exp2 = call_fresh(a -> call_fresh(b -> @disj_(@conj_(equals(a, 3),  fives(b)), equals(a, 4) )))
+    #println(macroexpand(:(call_fresh(a -> @disj_(@conj_(equals(a, 5),  fives(a)), equals(a, 4) )))))
+    @fact take(4, exp1(empty_state)) --> take(4, exp2(empty_state))
   end
 end

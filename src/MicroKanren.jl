@@ -156,6 +156,7 @@ function Zzz(g)
 end
 
 macro conj_(g0, g...)
+  #println("conj call ", g0, " ", g)
   if (isempty(g))
     return :(@Zzz($(esc(g0))))
   else
@@ -182,8 +183,38 @@ end
 #(dene- syntax conde
 #(syntax- rules ()
 #(( _ (g0 g . . . ) . . . ) (disj+ (conj+ g0 g . . . ) . . . ))))
+
+#local c = begin
+#  if isa(vars, Symbol)
+#    [:($(esc(eval(QuoteNode(vars)))))]
+#  elseif isa(vars, Expr)
+#    [:($(esc(eval(isa(v, Symbol) ? QuoteNode(v) : v)))) for v in vars.args]
+#  else
+#    []
+#  end
+#end
+##println(c)
+#:(@fresh_helper($(esc(g0)), $(c...) ))
+
 macro conde(g...)
-  return :(@disj_(map(x -> @conj_(x), $g...)))
+  local cc = [ begin
+      if isa(gg, Expr)
+        if gg.head == :tuple
+          [ :($(esc(a))) for a in gg.args]
+        else
+        [ :($(esc(gg))) ]
+        end
+      else
+        #println("typeof ", typeof(gg))
+      end
+    end
+    for gg in g ]
+  #println(cc , 333)
+  local values = [ :(@conj_($(c...))) for c in cc]
+  #println("values ", values)
+
+  :( @disj_($(values...)) )
+
 end
 
 #macro fresh(vars, g0, g...)
