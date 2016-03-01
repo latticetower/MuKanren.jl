@@ -206,7 +206,7 @@ macro fresh_helper(g0, vars...)
   if (isempty(vars))
     return :($(esc(g0)))
   else
-    println("called fresh_helper with vars ", vars)
+    #println("called fresh_helper with vars ", vars)
     local vars0 = vars[1]
     #println("vars0 is ", vars0, " ", length(vars), " ",g0)
     if length(vars) > 1
@@ -230,8 +230,15 @@ export @fresh_helper
 
 macro fresh(vars, g0, g...)
   if isempty(g)
-  println("fresh g ", vars.args)
-    local c = [:($(esc(eval(isa(v, Symbol) ? QuoteNode(v) : v)))) for v in vars.args]
+    local c = begin
+      if isa(vars, Symbol)
+        [:($(esc(eval(QuoteNode(vars)))))]
+      elseif isa(vars, Expr)
+        [:($(esc(eval(isa(v, Symbol) ? QuoteNode(v) : v)))) for v in vars.args]
+      else
+        []
+      end
+    end
     #println(c)
     :(@fresh_helper($(esc(g0)), $(c...) ))
   else
