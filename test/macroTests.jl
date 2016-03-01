@@ -9,9 +9,9 @@ facts("Macro tests") do
   fives = x -> disj(equals(x, 5), s_c -> () -> fives(x)(s_c))
 
   context("Zzz") do
-    #println(macroexpand(:(@Zzz(x->println(x)))))
-    c = @Zzz(x -> x)
-    @fact c("Test Zzz")() --> "Test Zzz"
+    ##println(macroexpand(:(@Zzz(x->println(x)))))
+    #c = @Zzz(x -> x)
+    #@fact c("Test Zzz")() --> "Test Zzz"
   end
 
   context("fresh") do
@@ -36,7 +36,17 @@ facts("Macro tests") do
     #println(macroexpand(:(call_fresh(b -> call_fresh(a -> @conj_(equals(a, 3), equals(b, 4)))))))
     exp1 = call_fresh(b -> call_fresh(a -> conj(equals(a, 3), equals(b, 4))))
     exp2 = call_fresh(b -> call_fresh(a -> @conj_(equals(a, 3), equals(b, 4))))
+    #println(macroexpand(:( b->@conj_(equals(a, 3), equals(b, 4)))))
+    #println(take(1, exp2(empty_state)))
     @fact take_all(exp1(empty_state)) --> take_all(exp2(empty_state))
+    exp1 = call_fresh(b -> call_fresh(a -> conj(equals(a, 3), fives(b))))
+    exp2 = call_fresh(b -> call_fresh(a -> @conj_(equals(a, 3), fives(b))))
+    @fact take(2, exp1(empty_state)) --> take(2, exp2(empty_state))
+
+    exp1 = call_fresh(c-> call_fresh(b -> call_fresh(a -> conj(equals(a, 3), conj(equals(b, 4), fives(c))))))
+    exp2 = call_fresh(c -> call_fresh(b -> call_fresh(a -> @conj_(equals(a, 3), equals(b, 4), fives(c)))))
+    @fact take(3, exp1(empty_state)) --> take(3, exp2(empty_state))
+
   end
   context("disj+") do
     exp1 = call_fresh(a -> disj(equals(a, 3), equals(a, 4)))
@@ -47,9 +57,10 @@ facts("Macro tests") do
     exp2 = call_fresh(a -> @disj_(equals(a, 3),  fives(a)))
     @fact take(3, exp1(empty_state)) --> take(3, exp2(empty_state))
     ##test if there is disj of more than 2 statements:
-    #exp1 = call_fresh(a -> disj(equals(a, 3), disj(equals(a, 4), fives(a))))
-    #exp2 = call_fresh(a -> @disj_(equals(a, 3),  equals(a, 4), fives(a)))
-    #@fact take(3, exp1(empty_state)) --> take(3, exp2(empty_state))
+    exp1 = call_fresh(a -> disj(equals(a, 3), disj(fives(a), equals(a, 4))))
+    exp2 = call_fresh(a -> @disj_(equals(a, 3),  fives(a), equals(a, 4) ))
+    println(exp2(empty_state))
+    @fact take(3, exp1(empty_state)) --> take(3, exp2(empty_state))
   end
   context("conde") do
     #println(macroexpand(:(@conde (x->println(x)) (x2->println("a")))))

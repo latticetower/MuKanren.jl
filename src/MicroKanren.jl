@@ -148,24 +148,36 @@ show(io :: IO, v :: Nil) = print(io, v)
 export @Zzz, @fresh, @conj_, @disj_, @conde
 
 macro Zzz(g)
-  return :(s_c -> () -> $(esc(g))(s_c))
+:(s_c -> () -> $(esc(g))(s_c))
+end
+
+function Zzz(g)
+  :(s_c -> () -> $(esc(g))(s_c))
 end
 
 macro conj_(g0, g...)
   if (isempty(g))
-    return :(eval(@Zzz($(esc(g0)))))
+    return :(@Zzz($(esc(g0))))
   else
-    return :(conj(eval(@Zzz($(esc(g0)))), eval(@conj_($(esc(g...))))))
+    local t = [:($(esc(gg))) for gg in g]
+    quote
+      conj(@Zzz($(esc(g0))), @conj_($(t...)))
+    end
   end
 end
 
+
 macro disj_(g0, g...)
   if (isempty(g))
-    return :(eval(@Zzz($(esc(g0)))))
+    return :(@Zzz($(esc(g0))))
   else
-    return :(disj(eval(@Zzz($(esc(g0)))), eval(@disj_($(esc(g...))))))
+    local t = [:($(esc(gg))) for gg in g]
+    quote
+      disj(@Zzz($(esc(g0))), @disj_($(t...)))
+    end
   end
 end
+
 
 #(dene- syntax conde
 #(syntax- rules ()
