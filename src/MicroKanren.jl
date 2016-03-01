@@ -201,24 +201,28 @@ end
 #  return :(11)
 #end
 
+
 macro fresh_helper(g0, vars...)
-  if isempty(vars)
-    g0
+  if (isempty(vars))
+    return :($(esc(g0)))
   else
-    #println(vars[1], vars[2:end], vars)
+    println("called fresh_helper with vars ", vars)
+    local vars0 = vars[1]
+    #println("vars0 is ", vars0, " ", length(vars), " ",g0)
     if length(vars) > 1
+      local vars1 = vars[2:end]
+      ##println(vars0)
+      ##disj(@Zzz($(esc(g0))), @disj_($(t...)))
+      local exp = :($(esc(Expr(:->, :($vars0), :(@fresh_helper($g0, $(vars1...)))))))
+      #println("if case", exp)
       quote
-        local v = @fresh_helper($(esc(g0)), $(vars[2:end])...)
-        println(v)
-        call_fresh(Expr(:->, $(esc(vars[1])), eval(v)))
-        #:(call_fresh($(esc(Expr(:->, $(esc(vars[1])), eval(@fresh_helper($(esc(g0)), $(vars[2:end])...)))))))
+        call_fresh($exp)#Expr(:->, $(esc(vars0)), @fresh_helper($(esc(g0)), $(vars1...))))
       end
     else
-      quote
-        local v = $(esc(g0))
-        println(v)
-        call_fresh(Expr(:->, $(esc(vars[1])), v))
-      end
+      local exp2 = :($(esc(Expr(:->, vars0, g0))))
+      #println("else case ", exp2)
+      return :( call_fresh($exp2) )
+
     end
   end
 end
@@ -226,12 +230,18 @@ export @fresh_helper
 
 macro fresh(vars, g0, g...)
   if isempty(g)
-
-    :( @fresh_helper($(esc(g0)), ($(esc(vars)))... ))
+  println("fresh g ", vars.args)
+    local c = [:($(esc(eval(isa(v, Symbol) ? QuoteNode(v) : v)))) for v in vars.args]
+    #println(c)
+    :(@fresh_helper($(esc(g0)), $(c...) ))
   else
-    :(@fresh($(esc(vars)), eval(@conj_($(esc(g0)), $(esc(g...))) ) ))
+    local glist = [:($(esc(gg))) for gg in g]
+    #println("glist", glist)
+    :(@fresh($(esc(vars)), @conj_($(esc(g0)), $(glist...)) ) )
   end
 end
+
+
 
 ############# 5.2
 function pull(s)

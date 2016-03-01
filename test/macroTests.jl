@@ -16,19 +16,30 @@ facts("Macro tests") do
 
   context("fresh") do
     fives = x -> disj(equals(x, 5), s_c -> () -> fives(x)(s_c))
-    exp = miniKanren.MicroKanren.@fresh_helper(:(equals(x, 5)), :x)
-    println( exp(empty_state))
-    println("000")
-    println(macroexpand(:(miniKanren.MicroKanren.@fresh_helper(:(fives(x)), :x))))
-    #exp = miniKanren.MicroKanren.@fresh_helper(:(fives(x)), :x)
-    println(111)
-    ##println( exp(empty_state))
-    ##println(macroexpand(:(@fresh((x), equals(x, "111") ))))
-    #@fact take(2, call_fresh(x -> fives(x))(empty_state)) -->
-    #  take(2, miniKanren.MicroKanren.@fresh_helper(:(fives(x)), :x)(empty_state))
-    ##@fact show(miniKanren.MicroKanren.fresh_helper(:(equals(x,"111")),:x)) --> show(:(call_fresh(x->equals(x,"111"))))
-    #println(@fresh((:x), equals(x, "111") ))
-    #x = @fresh () (x->equals(x, "111")) (y->equals(y, "111"))
+    #exp = miniKanren.MicroKanren.@fresh_helper(:(equals(x, 5)), :x)
+    #println( exp(empty_state))
+    #println(111222)
+    println(macroexpand(:(miniKanren.MicroKanren.@fresh_helper(fives(x), x))))
+    println(macroexpand(:(miniKanren.MicroKanren.@fresh_helper(fives(x), x, y))))
+
+    exp = miniKanren.MicroKanren.@fresh_helper(equals(x, 5), x)
+    @fact take_all(exp(empty_state)) --> [Pair(list(Pair(Var(0), 5)), 1)]
+
+    exp = miniKanren.MicroKanren.@fresh_helper(fives(x), x)
+    @fact take(1, exp(empty_state)) --> [Pair(list(Pair(Var(0), 5)), 1)]
+    #exp = miniKanren.MicroKanren.@fresh_helper(fives(x), :x)
+    #println(take(1, exp(empty_state)))
+println("3331")
+    println(macroexpand(:(@fresh((:x, :y), equals(x, "111") ))))
+    println(macroexpand(:(@fresh((x, y), equals(x, "111") ))))
+    println(take(2, call_fresh(x -> fives(x))(empty_state)))
+#    println(take(2, miniKanren.MicroKanren.@fresh_helper(:(fives(x)), :x)(empty_state)))
+#    println("222221!!!!")
+    @fact take(2, call_fresh(x -> fives(x))(empty_state)) -->
+      take(2, miniKanren.MicroKanren.@fresh_helper(fives(x), x)(empty_state))
+#    ##@fact show(miniKanren.MicroKanren.fresh_helper(:(equals(x,"111")),:x)) --> show(:(call_fresh(x->equals(x,"111"))))
+#    #println(@fresh((:x), equals(x, "111") ))
+#    #x = @fresh () (x->equals(x, "111")) (y->equals(y, "111"))
   end
   context("conj+") do
 
