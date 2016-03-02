@@ -189,6 +189,8 @@ macro conde(g...)
         [ :($(esc(gg))) ]
         end
       else
+        [ :($(esc(gg))) ]
+        #todo: add other types check, this is in case when gg is Symbol
         #println("typeof ", typeof(gg))
       end
     end
@@ -312,17 +314,24 @@ function reify_state_1st_var(s_c :: Pair)
   walk_star(v, reify_s(v, nil()))
 end
 
+empty_state = Pair(nil(), 0)
+
 call_empty_state(g) = g(empty_state)
 #############3 run macros
+export @run, @run_star
+
 #todo: fix im lazy now to do it
 macro run(n, vars, g0, g...)
+  #println("in run ", vars, " ", g0)
   "this should eval expression"
-  :(mk_reify(take(n, call_empty_state(@fresh($vars, $g0, $g...)))))
+  local t = [:($(esc(gg))) for gg in g]
+  :(mk_reify(take($n, call_empty_state(@fresh($(esc(vars)), $(esc(g0)), $(t...))))))
 end
 
 macro run_star(vars, g0, g...)
   "this should eval expression too"
-  :(mk_reify(take_all(call_empty_state(@fresh($vars, $g0, $g...)))))
+  local t = [:($(esc(gg))) for gg in g]
+  :(mk_reify(take_all(call_empty_state(@fresh($(esc(vars)), $(esc(g0)), $(t...))))))
 end
 
 function occurs(x, v, s)
