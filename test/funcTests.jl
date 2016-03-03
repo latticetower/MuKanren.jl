@@ -1,6 +1,6 @@
+using Base.Test, muKanren, FactCheck
 import Base.string
-using Base.Test, miniKanren.MicroKanren, FactCheck
-importall miniKanren.MicroKanren
+import muKanren: conj, take, bind, mplus
 
 facts("objects") do
   context("list functions") do
@@ -76,7 +76,7 @@ facts("Goal construction") do
   end
 
   context("bind and mplus") do
-    @fact miniKanren.MicroKanren.bind(nil(), 1) --> mzero
+    @fact bind(nil(), 1) --> mzero
     #@pending miniKanren.MicroKanren.mplus()
   end
 

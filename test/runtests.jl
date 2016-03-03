@@ -1,7 +1,8 @@
-import Base.string, miniKanren.MicroKanren
-using Base.Test, miniKanren.MicroKanren
+import Base.string 
+using Base.Test, muKanren
 
 include("funcTests.jl")
 include("macroTests.jl")
+include("macroTests2.jl")
 
 FactCheck.exitstatus()

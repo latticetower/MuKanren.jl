@@ -1,9 +1,7 @@
 
-module MicroKanren
-export is_cons, assp, ext_s, call_fresh, length, equals, list, nil, Nil, bind, mplus, mzero, Var, var, conj, disj, car, cdr, take, take_all, vars_equal, cons
-#helpers
-#car{T}(x :: Cons{T}) = head(x)
-#cdr{T}(x :: Cons{T}) = tail(x)
+#module Core
+  export is_cons, assp, ext_s, call_fresh, length, equals, list, nil, Nil, bind, mplus, mzero,
+    Var, var, conj, disj, car, cdr, take, take_all, vars_equal, cons
 
 immutable Nil
 end
@@ -12,6 +10,9 @@ nil() = Nil()
 immutable Var
   index :: Int
 end
+
+is_var(x) = isa(x, Var)
+vars_equal(x1 :: Var, x2 :: Var) = x1.index == x2.index
 
 car(x :: Pair) = first(x)
 cdr(x :: Pair) = last(x)
@@ -31,28 +32,15 @@ end
 
 
 is_procedure(elt) = isa(elt, Function)
-#typealias Var{T} Vector{T}
-#  (define (assp p l)
-#    (cond ((null? l) #f)
-#          ((p (car l)) (car l))
-#          (else (assp p (cdr l)))))
 
 assp(func :: Function, alist :: Nil) = nil()
 function assp(func :: Function, alist :: Pair)
   first_pair = car(alist)
   first_pair == nil() && return nil()
   first_value = car(first_pair)
-  #println(string("assp ", func(first_value), alist))
   func(first_value) && return first_pair
   assp(func, cdr(alist))
 end
-
-#code
-
-#Var(c) = [c]
-is_var(x) = isa(x, Var)
-
-vars_equal(x1, x2) = x1.index == x2.index
 
 
 function walk(u, s)
@@ -63,15 +51,10 @@ function walk(u, s)
   u
 end
 
-#is_pair(v) && cdr(v) == nil() ? ext_s(x, car(v), s) :
-ext_s(x, v, s) = cons(Pair(x, v), s)
-
-#ext_s(x, v, s) = is_pair(s) && cdr(s) == nil() ? cons(Pair(x, v), car(s)) : cons(Pair(x, v), s)
-
+ext_s(x, v, s) = occurs(x,v,s) ? s : cons(Pair(x, v), s)
 
 mzero = nil()
-unit = s_c :: Pair -> cons(s_c, mzero) #todo check if here should really be list or 1 el obj
-
+unit = s_c :: Pair -> cons(s_c, mzero)
 
 
 function unify(u, v, s)
@@ -146,17 +129,13 @@ show(io :: IO, v :: Nil) = print(io, v)
 ############### macro definitions
 ################################
 export @Zzz, @fresh, @conj_, @disj_, @conde
+export @fresh_helper #this gets exported for testing purpose
 
 macro Zzz(g)
-:(s_c -> () -> $(esc(g))(s_c))
-end
-
-function Zzz(g)
   :(s_c -> () -> $(esc(g))(s_c))
 end
 
 macro conj_(g0, g...)
-  #println("conj call ", g0, " ", g)
   if (isempty(g))
     return :(@Zzz($(esc(g0))))
   else
@@ -191,16 +170,12 @@ macro conde(g...)
       else
         [ :($(esc(gg))) ]
         #todo: add other types check, this is in case when gg is Symbol
-        #println("typeof ", typeof(gg))
       end
     end
     for gg in g ]
-  #println(cc , 333)
   local values = [ :(@conj_($(c...))) for c in cc]
-  #println("values ", values)
 
   :( @disj_($(values...)) )
-
 end
 
 
@@ -208,27 +183,20 @@ macro fresh_helper(g0, vars...)
   if (isempty(vars))
     return :($(esc(g0)))
   else
-    #println("called fresh_helper with vars ", vars)
     local vars0 = vars[1]
-    #println("vars0 is ", vars0, " ", length(vars), " ",g0)
     if length(vars) > 1
       local vars1 = vars[2:end]
-      ##println(vars0)
-      ##disj(@Zzz($(esc(g0))), @disj_($(t...)))
       local exp = :($(esc(Expr(:->, :($vars0), :(@fresh_helper($g0, $(vars1...)))))))
-      #println("if case", exp)
       quote
-        call_fresh($exp)#Expr(:->, $(esc(vars0)), @fresh_helper($(esc(g0)), $(vars1...))))
+        call_fresh($exp)
       end
     else
       local exp2 = :($(esc(Expr(:->, vars0, g0))))
-      #println("else case ", exp2)
       return :( call_fresh($exp2) )
-
     end
   end
 end
-export @fresh_helper
+
 
 macro fresh(vars, g0, g...)
   if isempty(g)
@@ -245,7 +213,6 @@ macro fresh(vars, g0, g...)
     :(@fresh_helper($(esc(g0)), $(c...) ))
   else
     local glist = [:($(esc(gg))) for gg in g]
-    #println("glist", glist)
     :(@fresh($(esc(vars)), @conj_($(esc(g0)), $(glist...)) ) )
   end
 end
@@ -277,7 +244,7 @@ end
 ### reification
 ###############
 
-reify_name(n :: Int) = symbol("_.", n)
+reify_name(n :: Int) = string("_.", n)
 
 
 function map(f :: Function, p :: Pair)
@@ -297,7 +264,6 @@ end
 
 
 function walk_star(v, s)
-  #println(string("walk star", v, s))
   v = walk(v, s)
   is_var(v) && return v
   is_pair(v) && return cons(walk_star(car(v), s), walk_star(cdr(v), s))
@@ -317,6 +283,7 @@ end
 empty_state = Pair(nil(), 0)
 
 call_empty_state(g) = g(empty_state)
+
 #############3 run macros
 export @run, @run_star
 
@@ -334,10 +301,12 @@ macro run_star(vars, g0, g...)
   :(mk_reify(take_all(call_empty_state(@fresh($(esc(vars)), $(esc(g0)), $(t...))))))
 end
 
+
+
 function occurs(x, v, s)
   v = walk(v, s)
   is_var(v) && return vars_equal(v, x)
   is_pair(v) && (occurs(x, car(v), s) || occurs(x, cdr(v), s))
 end
 #next is module end
-end
+#end
