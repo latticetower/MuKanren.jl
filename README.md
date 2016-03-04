@@ -25,7 +25,7 @@ Call example:
 @fresh((x, y), equals(x, "111"),
     equals(x, "22"), fives(y))
 ```
-`@fresh` macro correctly expands when any number of variables are given in first parameter as a tuple (surrounded by parentheses), like in above sample call. It also correctly processes one or more input relations.
+  `@fresh` macro correctly expands when any number of variables are given in first parameter as a tuple (surrounded by parentheses), like in above sample call. It also correctly processes one or more input relations.
 
 + `@conde` macro is analogue for `conde`. It produces disjunction of conjunctions for given groups of relations.
   Each group of input relations, surrounded by parentheses (each tuple of relations) is expanded as conjunctions of these relations, and all such groups are expanded as disjunction of groups.
