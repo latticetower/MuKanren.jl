@@ -1,5 +1,5 @@
 import Base.string
-using Base.Test, muKanren, FactCheck
+using Base.Test, MuKanren, FactCheck
 
 # These tests are taken from interactive tutorial from miniKanren website (minikanren.org), currently not all of that tests are implemented here
 facts("Tests for run/run* macro commands") do

@@ -1,5 +1,5 @@
-import Base.string 
-using Base.Test, muKanren
+import Base.string
+using Base.Test, MuKanren
 
 include("funcTests.jl")
 include("macroTests.jl")

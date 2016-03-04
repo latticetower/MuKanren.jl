@@ -1,6 +1,6 @@
 
 import Base.string
-using Base.Test, muKanren, FactCheck
+using Base.Test, MuKanren, FactCheck
 
 
 facts("Macro tests") do

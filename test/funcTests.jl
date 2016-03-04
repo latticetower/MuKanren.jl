@@ -1,6 +1,6 @@
-using Base.Test, muKanren, FactCheck
+using Base.Test, MuKanren, FactCheck
 import Base.string
-import muKanren: conj, take, bind, mplus
+import MuKanren: conj, take, bind, mplus
 
 facts("objects") do
   context("list functions") do

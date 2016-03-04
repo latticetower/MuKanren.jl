@@ -4,4 +4,4 @@ julia:
 notifications:
   email: false
 script:
-  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("muKanren")'
+  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("MuKanren")'

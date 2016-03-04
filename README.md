@@ -1,6 +1,6 @@
-# muKanren.jl
+# MuKanren.jl
 
-[![Build Status](https://travis-ci.org/latticetower/muKanren.jl.svg?branch=master)](https://travis-ci.org/latticetower/muKanren.jl)
+[![Build Status](https://travis-ci.org/latticetower/MuKanren.jl.svg?branch=master)](https://travis-ci.org/latticetower/MuKanren.jl)
 
 This package contains minimal [miniKanren](http://miniKanren.org) implementation in Julia, based on article [microKanren: A Minimal Functional Core for Relational Programming](http://webyrd.net/scheme-2013/papers/HemannMuKanren2013.pdf) by Jason Hemann and Daniel P. Friedman.
 
