@@ -13,7 +13,7 @@ MuKanren, like original miniKanren implementation, provides 3 operations:
 
 + `equals` function unifies two terms, analogue for `==` operator in original miniKanren Scheme implementation.
   This method takes exactly two parameters. Call examples:
-  ```
+  ```julia
   equals(x, 3)
   equals(3, 3)
   #etc.
@@ -21,7 +21,7 @@ MuKanren, like original miniKanren implementation, provides 3 operations:
 
 + `@fresh` macro introduces lexically-scoped variables, binds them to new logic variables and also performs conjunction of the relations within its body. Analogue for `fresh` in Scheme implementation.
 Call example:
-```
+```julia
 @fresh((x, y), equals(x, "111"),
     equals(x, "22"), fives(y))
 ```
@@ -33,16 +33,16 @@ Call example:
   Call examples:
 
   This macro call is expanded to disjunction of relations - each group of relations contains only one relation, parentheses are omitted:
-  ```
+  ```julia
   @conde(equals(3, 3), equals(4, 4))
   ```
   The same, but parentheses are shown:
-  ```
+  ```julia
   @conde((equals(3, 3)), (equals(4, 4))
   ```
 
   This macro call is expanded to conjunction of given relations:
-  ```
+  ```julia
   @conde((equals(3, 3), equals(4, 4))) #
   ```
 
@@ -54,12 +54,12 @@ There are also several other operations, including `@conj_` (analogue for `conj+
 
 To process relations built with `equals`, `@fresh` and `@conde`, I implemented also `@run` (and `@run_star`) macro commands. They behave like original `run` and `run*` commands described in original miniKanren, and can be called this way:
 
-```
+```julia
 @run(1, q, @fresh((x, z),
   equals(x, z), equals(3, z), equals(q, x)))
 ```
 
-```
+```julia
 @run_star(q, @fresh((x, z), equals(x, z), equals(3, z), equals(q, x)))
 ```
 
@@ -67,7 +67,7 @@ Both `@run` and `@run_star` correctly support and process multiple relations.
 
 Complex `@run` example(with `@conde`, ``@fresh` and `equals`):
 
-```
+```julia
 result = @run(2, q,
   @fresh((w, x, y),
     @conde(
@@ -83,7 +83,7 @@ result = @run(2, q,
 ```
 
 All macro commands should correctly process inner function calls defined elsewhere. For example:
-```
+```julia
 anyo = g -> @conde(g, anyo(g))
 
 @run(10, q, anyo(@conde(
